@@ -1,0 +1,5 @@
+# Python stuff
+*.pyc
+
+# This has API keys in it
+connections.*
