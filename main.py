@@ -1,8 +1,9 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup
+from bs4.diagnose import diagnose
 import re
-import requests
-from connections import *
+from connections import glassdoor_p_id, glassdoor_key
+from glassdoorhandler import GlassdoorHandler
 
 def get_cities():
     br = mechanize.Browser()
@@ -16,39 +17,43 @@ def get_cities():
 
     h4results = soup.findAll('h4')
 
-    raw_cities = [r.text for r in h4results if re.findall('[0-9]\.', r.text)]
+    print diagnose(html)
 
-    cities = [" ".join(city.split()[1:]) for city in raw_cities]
+    cities = {}
+    for item in h4results:
+        if re.findall('[0-9]\.', item.text):
+            city = " ".join(item.text.split()[1:])
+            description = item.findNext('p').text
+            cities[city] = description
 
     return cities
 
-
-def get_glassdoor_rating(company):
-    query = company
-    headers = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36',
-               'content-type': 'application/json',
-               'accept-language': 'en-US'
-              }
-    user_ip = '73.209.138.204'
-    api_url = 'http://api.glassdoor.com/api/api.htm?t.p=%s&t.k=%s&userip=%s&useragent=&format=json&v=1&action=employers&q=%s' % (glassdoor_p_id, glassdoor_key, user_ip, query)
-    print api_url
-    print headers
-    response = requests.get(api_url, headers=headers)
-    print response.text
-    
 def check_indeed(title, city):
     br = mechanize.Browser(factory=mechanize.RobustFactory())
     br.set_handle_robots(False)
 
     indeed_url = 'http://www.indeed.com'
 
-    response = br.open(indeed_url)
-    html = response.read()
+    br.open(indeed_url)
 
     br.form = list(br.forms())[0]
 
-    br["q"] = "Developer" # The What id
-    br["l"] = "Washington, DC" # The Where id
+    br["q"] = title # The What id
+    br["l"] = city # The Where id
     response = br.submit()
     print br.geturl()
     return response.read()
+
+
+if __name__ == '__main__':
+    cities = get_cities()
+    print cities
+
+    # print check_indeed("Developer", "Washington, DC")
+
+    glassdoor = GlassdoorHandler(glassdoor_p_id, glassdoor_key, '73.209.138.204')
+    print glassdoor.get_company_rating('IBM')
+
+    print glassdoor.get_job_progression('plant manager')
+
+    # print glassdoor.get_job_stats('Washington, DC')

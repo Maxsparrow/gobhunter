@@ -1,5 +1,6 @@
 # Python stuff
 *.pyc
+.idea
 
 # This has API keys in it
 connections.*
