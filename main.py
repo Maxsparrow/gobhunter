@@ -1,9 +1,9 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup
-from bs4.diagnose import diagnose
 import re
 from connections import glassdoor_p_id, glassdoor_key
 from glassdoorhandler import GlassdoorHandler
+import random
 
 def get_cities():
     br = mechanize.Browser()
@@ -16,8 +16,6 @@ def get_cities():
     soup = BeautifulSoup(html)
 
     h4results = soup.findAll('h4')
-
-    print diagnose(html)
 
     cities = {}
     for item in h4results:
@@ -45,15 +43,34 @@ def check_indeed(title, city):
     return response.read()
 
 
-if __name__ == '__main__':
+def read_jobs_list(file_name):
+    with open(file_name) as f:
+        results = f.readlines()
+
+    return [result[:-1] for result in results]
+
+def pick_random(a_list):
+    return random.choice(a_list)
+
+def start():
+    jobs_list = read_jobs_list('jobslist.txt')
+
+    selected_job = pick_random(jobs_list)
+
     cities = get_cities()
-    print cities
+    selected_city = pick_random(cities.keys())
+
+    print check_indeed(selected_job, selected_city)
+
+
+if __name__ == '__main__':
+    start()
 
     # print check_indeed("Developer", "Washington, DC")
 
-    glassdoor = GlassdoorHandler(glassdoor_p_id, glassdoor_key, '73.209.138.204')
-    print glassdoor.get_company_rating('IBM')
+    # glassdoor = GlassdoorHandler(glassdoor_p_id, glassdoor_key, '73.209.138.204')
+    # print glassdoor.get_company_rating('IBM')
 
-    print glassdoor.get_job_progression('plant manager')
+    # print glassdoor.get_job_progression('plant manager')
 
     # print glassdoor.get_job_stats('Washington, DC')
