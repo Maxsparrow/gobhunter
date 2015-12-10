@@ -1,6 +1,7 @@
 import mechanize
 from BeautifulSoup import BeautifulSoup
 import re
+from indeedhandler import IndeedHandler
 from connections import glassdoor_p_id, glassdoor_key
 from glassdoorhandler import GlassdoorHandler
 import random
@@ -26,23 +27,6 @@ def get_cities():
 
     return cities
 
-def check_indeed(title, city):
-    br = mechanize.Browser(factory=mechanize.RobustFactory())
-    br.set_handle_robots(False)
-
-    indeed_url = 'http://www.indeed.com'
-
-    br.open(indeed_url)
-
-    br.form = list(br.forms())[0]
-
-    br["q"] = title # The What id
-    br["l"] = city # The Where id
-    response = br.submit()
-    print br.geturl()
-    return response.read()
-
-
 def read_jobs_list(file_name):
     with open(file_name) as f:
         results = f.readlines()
@@ -60,7 +44,10 @@ def start():
     cities = get_cities()
     selected_city = pick_random(cities.keys())
 
-    print check_indeed(selected_job, selected_city)
+    indeedhandler = IndeedHandler()
+
+    from pprint import pprint
+    pprint(indeedhandler.check_indeed(selected_job, selected_city))
 
 
 if __name__ == '__main__':
