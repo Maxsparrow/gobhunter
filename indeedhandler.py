@@ -22,22 +22,27 @@ class IndeedHandler:
 
         soup = BeautifulSoup(response)
 
-        titles = soup.findAll("a", attrs={"data-tn-element": "jobTitle"})
-        titles = [item.text for item in titles]
+        titles_soup = soup.findAll("a", attrs={"data-tn-element": "jobTitle"})
+        titles = [item.text for item in titles_soup]
+        urls = ['http://www.indeed.com' + item.get('href') for item in titles_soup]
         companies = self._find_field_in_soup(soup, "company")
         locations = self._find_field_in_soup(soup, "location")
         summaries = self._find_field_in_soup(soup, "summary")
         dates = self._find_field_in_soup(soup, "date")
 
-        return self._create_jobs_dict(title=titles, company=companies, location=locations, summary=summaries, date=dates)
+        return self._create_jobs_dict(title=titles, company=companies, location=locations,
+                                      summary=summaries, date=dates, url=urls)
 
     def _find_field_in_soup(self, soup, class_name):
         results = soup.findAll("span", attrs={"class": class_name})
         return [item.text for item in results]
 
     def _create_jobs_dict(self, **kwargs):
+        # assert they are all equal length here
+        first_len = len(kwargs.values()[0])
         for lst in kwargs.values():
-            print len(lst) # may want to assert they are all equals here
+            if len(lst) != first_len:
+                raise IndexError("Object is not correct length. Please find the bad value: %s" % lst)
 
         jobs_list = []
         for field, value in kwargs.items():

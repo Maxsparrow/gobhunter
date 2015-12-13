@@ -1,4 +1,5 @@
 import requests
+import json
 
 class GlassdoorHandler:
     def __init__(self, api_p_id, api_key, user_ip):
@@ -17,10 +18,20 @@ class GlassdoorHandler:
         for k, v in kwargs.items():
             api_url += '&%s=%s' % (k, v)
         response = requests.get(api_url, headers=self._headers)
-        return response.text
+        return json.loads(response.text)
 
     def get_company_rating(self, company):
-        return self._get('employers', q=company)
+        results = self._get('employers', q=company)['response']
+        if results['employers']:
+            results_dict = {'glassdoor_url': results['attributionURL'],
+                            'glassdoor_rating': results['employers'][0]['overallRating'],
+                            'glassdoor_name': results['employers'][0]['name']
+                            }
+            if 'featuredReview' in results['employers'][0]:
+                results_dict.update({'glassdoor_pros': results['employers'][0]['featuredReview']['pros'],
+                                     'glassdoor_cons': results['employers'][0]['featuredReview']['cons']})
+            return results_dict
+        return
 
     def get_job_progression(self, jobtitle):
         return self._get('jobs-prog', countryId=1, jobTitle=jobtitle)
