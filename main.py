@@ -106,18 +106,8 @@ def create_email_jobs_message(jobs_list, job_title, city, number_of_jobs):
             message_body += "%s: %s<br>" % (key, value)
     return message_body
 
-def start():
-    jobs_list = read_jobs_list('jobslist.txt')
-
-    selected_job = pick_random(jobs_list)
-
-    cities = get_cities()
-    selected_city = pick_random(cities.keys())
-
+def generate_jobs_list(selected_job, selected_city):
     indeedhandler = IndeedHandler()
-
-    selected_job = 'lead engineer'
-    selected_city = 'Atlanta, GA'
     jobs_list = indeedhandler.check_indeed(selected_job, selected_city)
 
     jobs_list = filter_jobs(jobs_list)
@@ -126,10 +116,25 @@ def start():
 
     jobs_list = order_jobs_by_rating(jobs_list)
 
+    return jobs_list
+
+
+def start():
+    jobs_list = read_jobs_list('jobslist.txt')
+    selected_job = pick_random(jobs_list)
+
+    cities = get_cities()
+    selected_city = pick_random(cities.keys())
+
+    selected_job = 'lead engineer'
+    selected_city = 'Atlanta, GA'
+
+    jobs_list = generate_jobs_list(selected_job, selected_city)
+
     message_body = create_email_jobs_message(jobs_list, selected_job, selected_city, 10)
 
     from pprint import pprint
-    pprint(message_body)
+    pprint(message_body.replace("<br>","\n"))
 
     send_email(email_user, ['maxsparrow@gmail.com'], "Today's jobs", message_body, email_user, email_pass)
 
