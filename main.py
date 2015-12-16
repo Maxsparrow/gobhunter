@@ -1,11 +1,12 @@
+import random
+from collections import OrderedDict
 import mechanize
 from BeautifulSoup import BeautifulSoup
 import re
 from indeedhandler import IndeedHandler
-from connections import glassdoor_p_id, glassdoor_key
+from connections import glassdoor_p_id, glassdoor_key, email_user, email_pass
 from glassdoorhandler import GlassdoorHandler
 from emailsender import send_email
-import random
 
 DAYS_OLD_LIMIT = 20
 MINIMUM_COMPANY_RATING = 3.0
@@ -60,7 +61,7 @@ def _filter_job_company_rating(job_dict):
     return False
 
 def _filter_job_days(job_dict):
-    if int(job_dict['date'][:2]) < DAYS_OLD_LIMIT:
+    if int(job_dict['date_posted'][:2]) < DAYS_OLD_LIMIT:
         return True
     return False
 
@@ -70,9 +71,40 @@ def _filter_remove_nones(jobs_list):
 def pick_random(a_list):
     return random.choice(a_list)
 
-def create_email_jobs_message(jobs_list):
-    # TODO Implement this
-    pass
+def order_jobs_dicts(jobs_list):
+    key_list = ['title', 'company', 'glassdoor_company_name', 'location',
+                'glassdoor_rating', 'summary', 'glassdoor_pros', 'glassdoor_cons',
+                'glassdoor_url', 'job_url', 'date_posted']
+    new_job_list = []
+    for job_dict in jobs_list:
+        ordered_jobs_dict = OrderedDict()
+        for key in key_list:
+            if key in job_dict:
+                ordered_jobs_dict[key] = job_dict[key]
+        new_job_list.append(ordered_jobs_dict)
+
+    return new_job_list
+
+def order_jobs_by_rating(jobs_list):
+    n = len(jobs_list)
+    swapped = True
+    while swapped:
+        swapped = False
+        for i in range(1, n):
+            if float(jobs_list[i-1]['glassdoor_rating']) < float(jobs_list[i]['glassdoor_rating']):
+                temp = jobs_list[i-1]
+                jobs_list[i-1] = jobs_list[i]
+                jobs_list[i] = temp
+                swapped = True
+    return jobs_list
+
+def create_email_jobs_message(jobs_list, job_title, city, number_of_jobs):
+    message_body = "Today's top %s jobs for '%s' in %s: " % (number_of_jobs, job_title, city)
+    for job in jobs_list[:number_of_jobs]:
+        message_body += "<br>"*2
+        for key, value in job.items():
+            message_body += "%s: %s<br>" % (key, value)
+    return message_body
 
 def start():
     jobs_list = read_jobs_list('jobslist.txt')
@@ -84,10 +116,22 @@ def start():
 
     indeedhandler = IndeedHandler()
 
+    selected_job = 'lead engineer'
+    selected_city = 'Atlanta, GA'
     jobs_list = indeedhandler.check_indeed(selected_job, selected_city)
 
+    jobs_list = filter_jobs(jobs_list)
+
+    jobs_list = order_jobs_dicts(jobs_list)
+
+    jobs_list = order_jobs_by_rating(jobs_list)
+
+    message_body = create_email_jobs_message(jobs_list, selected_job, selected_city, 10)
+
     from pprint import pprint
-    pprint(filter_jobs(jobs_list))
+    pprint(message_body)
+
+    send_email(email_user, ['maxsparrow@gmail.com'], "Today's jobs", message_body, email_user, email_pass)
 
 
 if __name__ == '__main__':

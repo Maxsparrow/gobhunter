@@ -25,7 +25,7 @@ class GlassdoorHandler:
         if results['employers']:
             results_dict = {'glassdoor_url': results['attributionURL'],
                             'glassdoor_rating': results['employers'][0]['overallRating'],
-                            'glassdoor_name': results['employers'][0]['name']
+                            'glassdoor_company_name': results['employers'][0]['name']
                             }
             if 'featuredReview' in results['employers'][0]:
                 results_dict.update({'glassdoor_pros': results['employers'][0]['featuredReview']['pros'],

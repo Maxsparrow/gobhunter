@@ -16,7 +16,7 @@ class IndeedHandler:
         br["l"] = city # The Where id
         response = br.submit()
         print br.geturl()
-        response = br.open(br.geturl() + '&limit=50') # 50 items per page, consider looping through pages
+        response = br.open(br.geturl() + '&limit=20') # 20 items per page, this is good to keep only relevant items
         print br.geturl()
         response = response.read()
 
@@ -31,11 +31,11 @@ class IndeedHandler:
         dates = self._find_field_in_soup(soup, "date")
 
         return self._create_jobs_dict(title=titles, company=companies, location=locations,
-                                      summary=summaries, date=dates, url=urls)
+                                      summary=summaries, date_posted=dates, job_url=urls)
 
     def _find_field_in_soup(self, soup, class_name):
         results = soup.findAll("span", attrs={"class": class_name})
-        return [item.text for item in results]
+        return [item.text.encode('ascii', 'ignore') for item in results]
 
     def _create_jobs_dict(self, **kwargs):
         # assert they are all equal length here
