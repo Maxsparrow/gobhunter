@@ -7,6 +7,7 @@ from indeedhandler import IndeedHandler
 from connections import glassdoor_p_id, glassdoor_key, email_user, email_pass
 from glassdoorhandler import GlassdoorHandler
 from emailsender import send_email
+from calendarhandler import get_events
 
 DAYS_OLD_LIMIT = 20
 MINIMUM_COMPANY_RATING = 3.0
@@ -108,7 +109,10 @@ def create_email_jobs_message(jobs_list, job_title, city, number_of_jobs):
 
 def generate_jobs_list(selected_job, selected_city):
     indeedhandler = IndeedHandler()
-    jobs_list = indeedhandler.check_indeed(selected_job, selected_city)
+    try:
+        jobs_list = indeedhandler.check_indeed(selected_job, selected_city)
+    except IndexError:
+        return
 
     jobs_list = filter_jobs(jobs_list)
 
@@ -129,6 +133,18 @@ def start():
     selected_job = 'lead engineer'
     selected_city = 'Atlanta, GA'
 
+    events = get_events()
+    for event in events:
+        summary = event['summary']
+        if summary == "Initial Email":
+            send_initial_email()
+        else:
+            itemtype, itemvalue = summary.split(": ")
+            if itemtype == "City":
+                selected_city = itemvalue
+            if itemtype == "Job":
+                selected_job = itemvalue
+
     jobs_list = generate_jobs_list(selected_job, selected_city)
 
     message_body = create_email_jobs_message(jobs_list, selected_job, selected_city, 10)
@@ -138,6 +154,15 @@ def start():
 
     send_email(email_user, ['maxsparrow@gmail.com'], "Today's jobs", message_body, email_user, email_pass)
 
+def send_initial_email():
+    message_body = """Welcome to Gobhunter! You will now receive daily job digests by email from Gobhunter.<br><br>
+    The schedule can be found in another email inviting you to view gobhunter's calendar.<br>
+    You can also modify the schedule yourself by modifying, deleting, or creating new events.<br>
+    Guidelines: Each day should only have two events, one starting with "City: ", and another with "Job: "<br>
+    For best results make the events 'whole day' events.<br><br>
+    Reply STOP to stop messages. Just kidding, that won't work, just ask Chris to stop the messages.
+    """
+    send_email(email_user, ['maxsparrow@gmail.com'], "Welcome to Gobhunter!", message_body, email_user, email_pass)
 
 if __name__ == '__main__':
     start()

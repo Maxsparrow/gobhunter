@@ -4,3 +4,4 @@
 
 # This has API keys in it
 connections.*
+client_secret.json

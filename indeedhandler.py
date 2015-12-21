@@ -42,7 +42,7 @@ class IndeedHandler:
         first_len = len(kwargs.values()[0])
         for lst in kwargs.values():
             if len(lst) != first_len:
-                raise IndexError("Object is not correct length. Please find the bad value: %s" % lst)
+                raise IndexError("Object is not correct length. Please find the bad value: %s" % kwargs)
 
         jobs_list = []
         for field, value in kwargs.items():

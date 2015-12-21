@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 
 class GlassdoorHandler:
     def __init__(self, api_p_id, api_key, user_ip):
@@ -17,8 +18,20 @@ class GlassdoorHandler:
         api_url = self._base_uri + '?t.p=%s&t.k=%s&userip=%s&useragent=&format=json&v=1&action=%s' % (self._api_p_id, self._api_key, self._user_ip, action)
         for k, v in kwargs.items():
             api_url += '&%s=%s' % (k, v)
-        response = requests.get(api_url, headers=self._headers)
-        return json.loads(response.text)
+
+        num_attempts = 0
+        valid_response = False
+        while not valid_response:
+            response = requests.get(api_url, headers=self._headers)
+            json_data = json.loads(response.text)
+            if response.ok and 'response' in json_data:
+                return json_data
+            elif num_attempts == 5:
+                return None
+            else:
+                print "Failed api response, waiting 60 seconds"
+                num_attempts += 1
+                time.sleep(60)
 
     def get_company_rating(self, company):
         results = self._get('employers', q=company)['response']
