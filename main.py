@@ -1,8 +1,5 @@
-import random
 from collections import OrderedDict
-import mechanize
 from BeautifulSoup import BeautifulSoup
-import re
 from indeedhandler import IndeedHandler
 from connections import glassdoor_p_id, glassdoor_key, email_user, email_pass
 from glassdoorhandler import GlassdoorHandler
@@ -11,27 +8,6 @@ from calendarhandler import get_events
 
 DAYS_OLD_LIMIT = 20
 MINIMUM_COMPANY_RATING = 3.0
-
-def get_cities():
-    br = mechanize.Browser()
-
-    cities_url = 'http://greatist.com/health/20-best-cities-20-somethings'
-
-    response = br.open(cities_url)
-    html = response.read()
-
-    soup = BeautifulSoup(html)
-
-    h4results = soup.findAll('h4')
-
-    cities = {}
-    for item in h4results:
-        if re.findall('[0-9]\.', item.text):
-            city = " ".join(item.text.split()[1:])
-            description = item.findNext('p').text
-            cities[city] = description
-
-    return cities
 
 def read_jobs_list(file_name):
     with open(file_name) as f:
@@ -67,10 +43,7 @@ def _filter_job_days(job_dict):
     return False
 
 def _filter_remove_nones(jobs_list):
-    return [job for job in jobs_list if job]
-
-def pick_random(a_list):
-    return random.choice(a_list)
+    return [job for job in jobs_list if job]\
 
 def order_jobs_dicts(jobs_list):
     key_list = ['title', 'company', 'glassdoor_company_name', 'location',
@@ -124,15 +97,6 @@ def generate_jobs_list(selected_job, selected_city):
 
 
 def start():
-    jobs_list = read_jobs_list('jobslist.txt')
-    selected_job = pick_random(jobs_list)
-
-    cities = get_cities()
-    selected_city = pick_random(cities.keys())
-
-    selected_job = 'lead engineer'
-    selected_city = 'Atlanta, GA'
-
     events = get_events()
     for event in events:
         summary = event['summary']
@@ -159,8 +123,10 @@ def send_initial_email():
     The schedule can be found in another email inviting you to view gobhunter's calendar.<br>
     You can also modify the schedule yourself by modifying, deleting, or creating new events.<br>
     Guidelines: Each day should only have two events, one starting with "City: ", and another with "Job: "<br>
-    For best results make the events 'whole day' events.<br><br>
-    Reply STOP to stop messages. Just kidding, that won't work, just ask Chris to stop the messages.
+    For best results make the events 'whole day' events<br><br>
+    The default cities are chosen from this link: <a href="http://greatist.com/health/20-best-cities-20-somethings">Best cities for twenty somethings</a><br>
+    Extended descriptions for the cities are available there<br>
+    <br>Reply STOP to stop messages. Just kidding, that won't work, just ask Chris to stop the messages.
     """
     send_email(email_user, ['maxsparrow@gmail.com'], "Welcome to Gobhunter!", message_body, email_user, email_pass)
 
