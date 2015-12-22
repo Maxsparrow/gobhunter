@@ -128,7 +128,8 @@ def send_initial_email():
     For best results make the events 'whole day' events<br><br>
     The default cities are chosen from this link: <a href="http://greatist.com/health/20-best-cities-20-somethings">Best cities for twenty somethings</a><br>
     Extended descriptions for the cities are available there<br>
-    <br>Reply STOP to stop messages. Just kidding, that won't work, just ask Chris to stop the messages.
+    <br>Reply STOP to stop messages. Just kidding, that won't work, just ask Chris to stop the messages.<br>
+    <br>My code can be found on github here. Not my best work, but still pretty cool: https://github.com/maxsparrow/gobhunter<br>
     """
     send_email(email_user, ['maxsparrow@gmail.com'], "Welcome to Gobhunter!", message_body, email_user, email_pass)
 
