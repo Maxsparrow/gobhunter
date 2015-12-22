@@ -97,6 +97,7 @@ def generate_jobs_list(selected_job, selected_city):
 
 
 def start():
+    selected_city = selected_job = None
     events = get_events()
     for event in events:
         summary = event['summary']
@@ -108,15 +109,16 @@ def start():
                 selected_city = itemvalue
             if itemtype == "Job":
                 selected_job = itemvalue
-
-    jobs_list = generate_jobs_list(selected_job, selected_city)
-
-    message_body = create_email_jobs_message(jobs_list, selected_job, selected_city, 10)
-
-    from pprint import pprint
-    pprint(message_body.replace("<br>","\n"))
-
-    send_email(email_user, ['maxsparrow@gmail.com'], "Today's jobs", message_body, email_user, email_pass)
+    
+    if selected_city and selected_job:
+        jobs_list = generate_jobs_list(selected_job, selected_city)
+    
+        message_body = create_email_jobs_message(jobs_list, selected_job, selected_city, 10)
+    
+        from pprint import pprint
+        pprint(message_body.replace("<br>","\n"))
+    
+        send_email(email_user, ['maxsparrow@gmail.com'], "Today's jobs", message_body, email_user, email_pass)
 
 def send_initial_email():
     message_body = """Welcome to Gobhunter! You will now receive daily job digests by email from Gobhunter.<br><br>
