@@ -43,21 +43,7 @@ def _filter_job_days(job_dict):
     return False
 
 def _filter_remove_nones(jobs_list):
-    return [job for job in jobs_list if job]\
-
-def order_jobs_dicts(jobs_list):
-    key_list = ['title', 'company', 'glassdoor_company_name', 'location',
-                'glassdoor_rating', 'summary', 'glassdoor_pros', 'glassdoor_cons',
-                'glassdoor_url', 'job_url', 'date_posted']
-    new_job_list = []
-    for job_dict in jobs_list:
-        ordered_jobs_dict = OrderedDict()
-        for key in key_list:
-            if key in job_dict:
-                ordered_jobs_dict[key] = job_dict[key]
-        new_job_list.append(ordered_jobs_dict)
-
-    return new_job_list
+    return [job for job in jobs_list if job]
 
 def order_jobs_by_rating(jobs_list):
     n = len(jobs_list)
@@ -71,13 +57,32 @@ def order_jobs_by_rating(jobs_list):
                 jobs_list[i] = temp
                 swapped = True
     return jobs_list
-
+    
 def create_email_jobs_message(jobs_list, job_title, city, number_of_jobs):
     message_body = "Today's top %s jobs for '%s' in %s: " % (number_of_jobs, job_title, city)
     for job in jobs_list[:number_of_jobs]:
-        message_body += "<br>"*2
-        for key, value in job.items():
-            message_body += "%s: %s<br>" % (key, value)
+        if 'glassdoor_pros' in job and 'glassdoor_cons' in job:
+            glassdoor_pros = job['glassdoor_pros']
+            glassdoor_cons = job['glassdoor_cons']
+        else:
+            glassdoor_pros = glassdoor_cons = "NOT LISTED"
+            
+        job_html = """<br><br>
+        <h3>{title}</h3><br>
+        <h5>{company} - <i>{location}</i></h5><br>
+        <h5>Glassdoor Rating: {glassdoor_rating}<br>
+        {summary}<br><br>
+        Company name from glassdoor results: {glassdoor_company_name} (If this doesn't match the company above, disregard glassdoor results)<br>
+        Glassdoor Pros: {glassdoor_pros}<br>
+        Glassdoor Cons: {glassdoor_cons}<br>
+        Glassdoor URL: {glassdoor_url}<br>
+        <a href='{job_url}'>APPLY HERE</a> (job posted on {date_posted})<br>
+        """.format(title=job['title'], company=job['company'], location=job['location'], glassdoor_rating=job['glassdoor_rating'],
+        summary=job['summary'], glassdoor_company_name=job['glassdoor_company_name'], 
+        glassdoor_pros=glassdoor_pros, glassdoor_cons=glassdoor_cons, glassdoor_url=job['glassdoor_url'],
+        job_url=job['job_url'], date_posted=job['date_posted'])
+        
+        message_body += job_html
     return message_body
 
 def generate_jobs_list(selected_job, selected_city):
@@ -88,8 +93,6 @@ def generate_jobs_list(selected_job, selected_city):
         return
 
     jobs_list = filter_jobs(jobs_list)
-
-    jobs_list = order_jobs_dicts(jobs_list)
 
     jobs_list = order_jobs_by_rating(jobs_list)
 
