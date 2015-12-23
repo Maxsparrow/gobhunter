@@ -1,5 +1,3 @@
-from collections import OrderedDict
-from BeautifulSoup import BeautifulSoup
 from indeedhandler import IndeedHandler
 from connections import glassdoor_p_id, glassdoor_key, email_user, email_pass
 from glassdoorhandler import GlassdoorHandler
@@ -8,6 +6,9 @@ from calendarhandler import get_events
 
 DAYS_OLD_LIMIT = 20
 MINIMUM_COMPANY_RATING = 3.0
+NUMBER_OF_JOBS_TO_RETURN = 10
+TO_ADDRESSES = ['maxsparrow@gmail.com']
+
 
 def read_jobs_list(file_name):
     with open(file_name) as f:
@@ -58,30 +59,30 @@ def order_jobs_by_rating(jobs_list):
                 swapped = True
     return jobs_list
     
-def create_email_jobs_message(jobs_list, job_title, city, number_of_jobs):
-    message_body = "Today's top %s jobs for '%s' in %s: " % (number_of_jobs, job_title, city)
+def create_email_jobs_message(jobs_list, number_of_jobs):
+    message_body = ""
     for job in jobs_list[:number_of_jobs]:
         if 'glassdoor_pros' in job and 'glassdoor_cons' in job:
             glassdoor_pros = job['glassdoor_pros']
             glassdoor_cons = job['glassdoor_cons']
         else:
             glassdoor_pros = glassdoor_cons = "NOT LISTED"
-            
-        job_html = """<br><br>
-        <h3>{title}</h3><br>
-        <h5>{company} - <i>{location}</i></h5><br>
-        <h5>Glassdoor Rating: {glassdoor_rating}<br>
+
+        job_html = """
+        <h3><b>{title}</b></h3>
+        <h4>{company} - <i>{location}</i><b><font size="0.8">    (Glassdoor Rating: {glassdoor_rating})</font></b></h4>
         {summary}<br><br>
-        Company name from glassdoor results: {glassdoor_company_name} (If this doesn't match the company above, disregard glassdoor results)<br>
-        Glassdoor Pros: {glassdoor_pros}<br>
-        Glassdoor Cons: {glassdoor_cons}<br>
-        Glassdoor URL: {glassdoor_url}<br>
-        <a href='{job_url}'>APPLY HERE</a> (job posted on {date_posted})<br>
+        <b>Glassdoor Pros:</b> {glassdoor_pros}<br>
+        <b>Glassdoor Cons:</b> {glassdoor_cons}<br>
+        <a href='{glassdoor_url}'><b>Glassdoor URL</b></a><br><br>
+        <a href='{job_url}'><b><font size="2">APPLY HERE</font></b></a> (job posted {date_posted})<br>
+        <br>
+        ------------------------------------------------------------------------------------
         """.format(title=job['title'], company=job['company'], location=job['location'], glassdoor_rating=job['glassdoor_rating'],
-        summary=job['summary'], glassdoor_company_name=job['glassdoor_company_name'], 
+        summary=job['summary'], glassdoor_company_name=job['glassdoor_company_name'],
         glassdoor_pros=glassdoor_pros, glassdoor_cons=glassdoor_cons, glassdoor_url=job['glassdoor_url'],
         job_url=job['job_url'], date_posted=job['date_posted'])
-        
+
         message_body += job_html
     return message_body
 
@@ -115,26 +116,27 @@ def start():
     
     if selected_city and selected_job:
         jobs_list = generate_jobs_list(selected_job, selected_city)
-    
-        message_body = create_email_jobs_message(jobs_list, selected_job, selected_city, 10)
-    
+
+        subject = "Today's top %s jobs for %s in %s: " % (NUMBER_OF_JOBS_TO_RETURN, selected_job, selected_city)
+        message_body = create_email_jobs_message(jobs_list, NUMBER_OF_JOBS_TO_RETURN)
+
         from pprint import pprint
         pprint(message_body.replace("<br>","\n"))
     
-        send_email(email_user, ['maxsparrow@gmail.com'], "Today's jobs", message_body, email_user, email_pass)
+        send_email(email_user, TO_ADDRESSES, subject, message_body, email_user, email_pass)
 
 def send_initial_email():
-    message_body = """Welcome to Gobhunter! You will now receive daily job digests by email from Gobhunter.<br><br>
+    message_body = """Merry Christmas, and welcome to Gobhunter! You will now receive daily job digests by email from Gobhunter.<br><br>
     The schedule can be found in another email inviting you to view gobhunter's calendar.<br>
-    You can also modify the schedule yourself by modifying, deleting, or creating new events.<br>
+    You can also modify the schedule yourself by modifying, deleting, or creating new events.<br><br>
     Guidelines: Each day should only have two events, one starting with "City: ", and another with "Job: "<br>
-    For best results make the events 'whole day' events<br><br>
-    The default cities are chosen from this link: <a href="http://greatist.com/health/20-best-cities-20-somethings">Best cities for twenty somethings</a><br>
-    Extended descriptions for the cities are available there<br>
+    For best results make the events 'whole day' events.<br><br>
+    The default cities are chosen from this link: <a href="http://greatist.com/health/20-best-cities-20-somethings">Best cities for twenty somethings</a>.
+    Extended descriptions for the cities are available there.<br><br>
     <br>Reply STOP to stop messages. Just kidding, that won't work, just ask Chris to stop the messages.<br>
     <br>My code can be found on github here. Not my best work, but still pretty cool: https://github.com/maxsparrow/gobhunter<br>
     """
-    send_email(email_user, ['maxsparrow@gmail.com'], "Welcome to Gobhunter!", message_body, email_user, email_pass)
+    send_email(email_user, TO_ADDRESSES, "Welcome to Gobhunter!", message_body, email_user, email_pass)
 
 if __name__ == '__main__':
     start()

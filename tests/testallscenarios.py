@@ -1,6 +1,8 @@
-from main import generate_jobs_list, create_email_jobs_message, read_jobs_list, get_cities
+from main import generate_jobs_list, create_email_jobs_message, read_jobs_list
 
-cities = get_cities()
+cities = ['Chicago, IL', 'Washington, DC', 'Baltimore, MD', 'San Francisco, CA', 'Denver, CO', 'Portland, OR',
+          'Boston, MA', 'Seattle, WA', 'New York, NY', 'Austin, TX', 'Minneapolis, MN', 'Oklahoma City, OK',
+          'Cleveland, OH', 'Cincinnati, OH', 'Atlanta, GA', 'Detroit MI', 'Memphis, TN', 'Saint Paul, MN', 'Omaha, NE']
 jobs = read_jobs_list('jobslist.txt')
 
 for selected_city in cities:

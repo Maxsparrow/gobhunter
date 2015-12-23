@@ -35,7 +35,7 @@ class IndeedHandler:
 
     def _find_field_in_soup(self, soup, class_name):
         results = soup.findAll("span", attrs={"class": class_name})
-        return [item.text.encode('ascii', 'ignore') for item in results]
+        return [item.text for item in results]
 
     def _create_jobs_dict(self, **kwargs):
         # assert they are all equal length here
@@ -47,6 +47,9 @@ class IndeedHandler:
         jobs_list = []
         for field, value in kwargs.items():
             for i in range(len(value)):
+                if isinstance(value[i], basestring):
+                    # Need this to send valid emails as ascii
+                    value[i] = value[i].encode('ascii', 'ignore')
                 try:
                     jobs_list[i][field] = value[i]
                 except IndexError:
