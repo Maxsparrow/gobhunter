@@ -7,7 +7,7 @@ from calendarhandler import get_events
 DAYS_OLD_LIMIT = 20
 MINIMUM_COMPANY_RATING = 3.0
 NUMBER_OF_JOBS_TO_RETURN = 10
-TO_ADDRESSES = ['maxsparrow@gmail.com']
+TO_ADDRESSES = ['maxsparrow@gmail.com', 'mjohnson7215@gmail.com']
 
 
 def read_jobs_list(file_name):
